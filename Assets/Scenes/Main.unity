@@ -2815,7 +2815,7 @@ MonoBehaviour:
     isPlayer: 0
   tilemapBounds:
     m_Position: {x: -8, y: -6, z: 0}
-    m_Size: {x: 800, y: 280, z: 0}
+    m_Size: {x: 400, y: 140, z: 0}
   mainTiles: {fileID: 265955156}
   screenOptions:
   - tilemapPrefab: {fileID: 3470878888191464852, guid: 0bcfc071a1e67fc44824eccfb3848e3e,
@@ -2842,6 +2842,24 @@ MonoBehaviour:
     down: 0
     left: 1
     right: 1
+    boss: 0
+    checkpoint: 0
+    start: 0
+  - tilemapPrefab: {fileID: 3470878888191464852, guid: 00889314bc333264095936b28005279f,
+      type: 3}
+    up: 1
+    down: 1
+    left: 0
+    right: 0
+    boss: 0
+    checkpoint: 0
+    start: 0
+  - tilemapPrefab: {fileID: 3470878888191464852, guid: 1ec3523ab04c96e4fa0235b8a5be6e53,
+      type: 3}
+    up: 1
+    down: 1
+    left: 0
+    right: 0
     boss: 0
     checkpoint: 0
     start: 0
@@ -2899,12 +2917,39 @@ MonoBehaviour:
     boss: 1
     checkpoint: 0
     start: 0
+  - tilemapPrefab: {fileID: 3470878888191464852, guid: 99b35b7a10c1c4e4ba683a63a42223f2,
+      type: 3}
+    up: 1
+    down: 0
+    left: 0
+    right: 0
+    boss: 1
+    checkpoint: 0
+    start: 0
+  - tilemapPrefab: {fileID: 3470878888191464852, guid: 4dc72f24f601c034a9d25b69533a7cb0,
+      type: 3}
+    up: 0
+    down: 1
+    left: 0
+    right: 0
+    boss: 1
+    checkpoint: 0
+    start: 0
   - tilemapPrefab: {fileID: 3470878888191464852, guid: 2f85d0a2a3132b741b8d85c71d3be283,
       type: 3}
     up: 0
     down: 0
     left: 1
     right: 1
+    boss: 0
+    checkpoint: 1
+    start: 0
+  - tilemapPrefab: {fileID: 3470878888191464852, guid: aa856bc076764ac4a99f3b8f68dbca40,
+      type: 3}
+    up: 1
+    down: 1
+    left: 0
+    right: 0
     boss: 0
     checkpoint: 1
     start: 0
@@ -2921,8 +2966,7 @@ MonoBehaviour:
   timer: 0.2
   screenSize: {x: 16, y: 14}
   possibleScreens: []
-  menuScene:
-    m_Handle: 0
+  menuScene: 0
   BaseEnd: '1s="3152.000000"
 
     1r="0.000000"
@@ -3231,10 +3275,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1280, y: 1120}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3

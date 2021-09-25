@@ -163,7 +163,9 @@ public class generator : MonoBehaviour
         {
             File.WriteAllText(path, tempSave);
         }
+#if !UNITY_EDITOR
         SceneManager.LoadScene(menuScene);
+#endif
     }
     public bool spawnScreen(Tilemap mainTilemap, ScreenOption toCopyFrom,Vector2Int offset, ref int placeInd, List<Vector2Int> posScreen, Vector2Int dirFrom)
     {
@@ -214,8 +216,9 @@ public class generator : MonoBehaviour
     }
     private void Update()
     {
-        if (timer <= 0)
+        if (timer == 0)
         {
+            timer = -1;
             possibleScreens = new List<Vector2Int>();
             for (int x = 0; x < tilemapBounds.size.x / screenSize.x; x++)
             {
@@ -248,7 +251,7 @@ public class generator : MonoBehaviour
                 }
             }
             mainTiles.ClearAllTiles();
-            int toPlace = possibleScreens.IndexOf(new Vector2Int((tilemapBounds.size.x / screenSize.x) / 4 * screenSize.x + tilemapBounds.x, (tilemapBounds.size.y / screenSize.y) / 4 * screenSize.y + tilemapBounds.y));
+            int toPlace = possibleScreens.IndexOf(new Vector2Int((tilemapBounds.size.x / screenSize.x) / 2 * screenSize.x + tilemapBounds.x, (tilemapBounds.size.y / screenSize.y) / 2 * screenSize.y + tilemapBounds.y));
             Vector2Int pastSpot = new Vector2Int();
             ScreenOption chosen = starts[Random.Range(0, starts.Count)];
             spawnScreen(mainTiles, chosen, possibleScreens[toPlace], ref toPlace, possibleScreens, pastSpot);
@@ -280,23 +283,41 @@ public class generator : MonoBehaviour
                 {
                     List<ScreenOption> tempList = new List<ScreenOption>();
                     Debug.Log(toPlace);
+                    int dirToSpawn = 0;
+                    int rng = Random.Range(0, 4);
+                    if (rng == 0 && pastSpot.y < possibleScreens[toPlace].y)
+                    {
+                        dirToSpawn = 0;
+                    }
+                    else if (rng == 2 && pastSpot.y > possibleScreens[toPlace].y)
+                    {
+                        dirToSpawn = 2;
+                    }
+                    else if (rng == 1 && pastSpot.x > possibleScreens[toPlace].x)
+                    {
+                        dirToSpawn = 1;
+                    }
+                    else if (rng == 3 && pastSpot.x < possibleScreens[toPlace].x)
+                    {
+                        dirToSpawn = 3;
+                    }
                     if (i == screenCount / 2)
                     {
                         foreach (var item in checkpoints)
                         {
-                            if (item.up && pastSpot.y < possibleScreens[toPlace].y)
+                            if (item.up && dirToSpawn == 0 && pastSpot.y < possibleScreens[toPlace].y)
                             {
                                 tempList.Add(item);
                             }
-                            else if (item.down && pastSpot.y > possibleScreens[toPlace].y)
+                            else if (item.down && dirToSpawn == 2 && pastSpot.y > possibleScreens[toPlace].y)
                             {
                                 tempList.Add(item);
                             }
-                            else if (item.right && pastSpot.x > possibleScreens[toPlace].x)
+                            else if (item.right && dirToSpawn == 1 && pastSpot.x > possibleScreens[toPlace].x)
                             {
                                 tempList.Add(item);
                             }
-                            else if (item.left && pastSpot.x < possibleScreens[toPlace].x)
+                            else if (item.left && dirToSpawn == 3 && pastSpot.x < possibleScreens[toPlace].x)
                             {
                                 tempList.Add(item);
                             }
@@ -447,7 +468,10 @@ public class generator : MonoBehaviour
                 GenerateFile();
             }
         }
-        timer = 0;
+        else
+        {
+            timer = 0;
+        }
     }
 }
 [System.Serializable]
