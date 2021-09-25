@@ -17,11 +17,11 @@ public class generator : MonoBehaviour
     public Tilemap mainTiles;
     public List<ScreenOption> screenOptions;
     public int screenCount = 10;
-    [TextArea]
     bool Generated = false;
     public float timer = 0.2f;
     public Vector2Int screenSize = new Vector2Int(16, 14);
     public List<Vector2Int> possibleScreens = new List<Vector2Int>();
+    public int menuScene;
     [TextArea]
     public string BaseEnd = "2a0,0=\"1.000000\"\n1s=\"3152.000000\"\n1r=\"0.000000\"\n1q=\"3344.000000\"\n1p=\"0.000000\"\n1m=\"8.000000\"\n1l=\"12.000000\"\n1k8=\"33.000000\"\n1k7=\"30.000000\"\n1k6=\"13.000000\"\n1k5=\"17.000000\"\n1k4=\"32.000000\"\n1k3=\"31.000000\"\n1k2=\"82.000000\"\n1k1=\"14.000000\"\n1k0=\"0.000000\"\n1bc=\"0.000000\"\n1f=\"-1.000000\"\n1e=\"29.000000\"\n1d=\"6.000000\"\n1cc=\"1.000000\"\n1cb=\"1.000000\"\n1bb=\"0.000000\"\n1ca=\"0.000000\"\n1ba=\"0.000000\"\n1c=\"1.000000\"\n1b=\"1.000000\"\n4b=\"3.000000\"\n4a=\"Generator\"\n1a=\"Generated\"\n0v=\"1.7.5\"\n0a=\"327493.000000\"";
     // Start is called before the first frame update
@@ -126,36 +126,44 @@ public class generator : MonoBehaviour
         }
         BinaryFormatter formatter = new BinaryFormatter();
         string path = Application.dataPath + "/Generated.mmlv";
+        string tempSave = "";
 
-
-        File.WriteAllText(path, "[Level]\n");
+        tempSave = tempSave+"[Level]\n";
         for (int i = tileIds.Count-1; i >= 0 ; i--)
         {
             var item = tileIds[i];
             if (item.tileType == TypeOfTile.tile)
             {
-                File.AppendAllText(path, tilesPossible[item.tileId].ReturnString(item.posX, item.posY) + "\n");
+                tempSave = tempSave + tilesPossible[item.tileId].ReturnString(item.posX, item.posY) + "\n";
             }
             else if (item.tileType == TypeOfTile.obj)
             {
-                File.AppendAllText(path, objsPossible[item.tileId].ReturnString(item.posX, item.posY) + "\n");
+                tempSave = tempSave + objsPossible[item.tileId].ReturnString(item.posX, item.posY) + "\n";
             }
             else if (item.tileType == TypeOfTile.spike)
             {
-                File.AppendAllText(path, spikesPossible[item.tileId].ReturnString(item.posX, item.posY) + "\n");
+                tempSave = tempSave + spikesPossible[item.tileId].ReturnString(item.posX, item.posY) + "\n";
             }
             else if (item.tileType == TypeOfTile.ladder)
             {
-                File.AppendAllText(path, ladderPossible[item.tileId].ReturnString(item.posX, item.posY) + "\n");
+                tempSave = tempSave + ladderPossible[item.tileId].ReturnString(item.posX, item.posY) + "\n";
             }
         }
-        File.AppendAllText(path, "2b0, 4256 =\"0.000000\"\n2b0,4032=\"0.000000\"\n2b0,3808=\"0.000000\"\n2b0,3584=\"0.000000\"\n2b0,3360=\"0.000000\"\n2b0,3136=\"0.000000\"\n2b0,2912=\"0.000000\"\n2b0,2688=\"0.000000\"\n2b0,2464=\"0.000000\"\n2b0,2240=\"0.000000\"\n2b0,2016=\"0.000000\"\n2b0,1792=\"0.000000\"\n2b0,1568=\"0.000000\"\n2b0,1344=\"0.000000\"\n2b0,1120=\"0.000000\"\n2b0,896=\"0.000000\"\n2b0,672=\"0.000000\"\n2b0,448=\"0.000000\"\n2b0,224=\"0.000000\"\n2b0,0=\"0.000000\"\n");
+        tempSave = tempSave + "2b0, 4256 =\"0.000000\"\n2b0,4032=\"0.000000\"\n2b0,3808=\"0.000000\"\n2b0,3584=\"0.000000\"\n2b0,3360=\"0.000000\"\n2b0,3136=\"0.000000\"\n2b0,2912=\"0.000000\"\n2b0,2688=\"0.000000\"\n2b0,2464=\"0.000000\"\n2b0,2240=\"0.000000\"\n2b0,2016=\"0.000000\"\n2b0,1792=\"0.000000\"\n2b0,1568=\"0.000000\"\n2b0,1344=\"0.000000\"\n2b0,1120=\"0.000000\"\n2b0,896=\"0.000000\"\n2b0,672=\"0.000000\"\n2b0,448=\"0.000000\"\n2b0,224=\"0.000000\"\n2b0,0=\"0.000000\"\n";
         foreach (var item in maps)
         {
-            File.AppendAllText(path, "2a"+item.x+","+item.y+"=\"1.000000\""+ "\n");
+            tempSave = tempSave + "2a" + item.x + "," + item.y + "=\"1.000000\"" + "\n";
         }
-        File.AppendAllText(path, BaseEnd);
-
+        tempSave = tempSave + BaseEnd;
+        if (WebGLFileSaver.IsSavingSupported())
+        {
+            WebGLFileSaver.SaveFile(tempSave, "Generated.mmlv");
+        }
+        else
+        {
+            File.WriteAllText(path, tempSave);
+        }
+        SceneManager.LoadScene(menuScene);
     }
     public bool spawnScreen(Tilemap mainTilemap, ScreenOption toCopyFrom,Vector2Int offset, ref int placeInd, List<Vector2Int> posScreen, Vector2Int dirFrom)
     {
@@ -204,231 +212,233 @@ public class generator : MonoBehaviour
         GameObject.Destroy(temp);
         return true;
     }
-    private void Start()
+    private void Update()
     {
-        possibleScreens = new List<Vector2Int>();
-        for (int x = 0; x < tilemapBounds.size.x/screenSize.x; x++)
+        if (timer <= 0)
         {
-            for (int y = 0; y < tilemapBounds.size.y / screenSize.y; y++)
+            possibleScreens = new List<Vector2Int>();
+            for (int x = 0; x < tilemapBounds.size.x / screenSize.x; x++)
             {
-                possibleScreens.Add(new Vector2Int(x*screenSize.x+tilemapBounds.x, y*screenSize.y+tilemapBounds.y));
-            }
-        }
-        List<ScreenOption> mains = new List<ScreenOption>();
-        List<ScreenOption> bosses = new List<ScreenOption>();
-        List<ScreenOption> checkpoints = new List<ScreenOption>();
-        List<ScreenOption> starts = new List<ScreenOption>();
-        foreach (var item in screenOptions)
-        {
-            if (item.start == true)
-            {
-                starts.Add(item);
-            }
-            else if (item.checkpoint == true)
-            {
-                checkpoints.Add(item);
-            }
-            else if (item.boss == true)
-            {
-                bosses.Add(item);
-            }
-            else if (item.boss == false && item.checkpoint == false && item.start == false)
-            {
-                mains.Add(item);
-            }
-        }
-        mainTiles.ClearAllTiles();
-        int toPlace = possibleScreens.IndexOf(new Vector2Int((tilemapBounds.size.x / screenSize.x)/4*screenSize.x + tilemapBounds.x, (tilemapBounds.size.y / screenSize.y) / 4*screenSize.y + tilemapBounds.y));
-        Vector2Int pastSpot = new Vector2Int();
-        ScreenOption chosen = starts[Random.Range(0, starts.Count)];
-        spawnScreen(mainTiles, chosen, possibleScreens[toPlace], ref toPlace, possibleScreens, pastSpot);
-        pastSpot = possibleScreens[toPlace];
-        Debug.Log(possibleScreens[toPlace]);
-        Vector2Int pastVect = possibleScreens[toPlace];
-        possibleScreens[toPlace] = new Vector2Int(-100, -100);
-        if (chosen.up && pastSpot.y <= pastVect.y)
-        {
-            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y - (screenSize.y)));
-        }
-        else if (chosen.down && pastSpot.y >= pastVect.y)
-        {
-            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y + (screenSize.y)));
-        }
-        else if (chosen.right && pastSpot.x <= pastVect.x)
-        {
-            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x + (screenSize.x), pastVect.y));
-        }
-        else if (chosen.left && pastSpot.x >= pastVect.x)
-        {
-            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x - (screenSize.x), pastVect.y));
-        }
-        for (int i = 0; i <= ((screenCount)); i++)
-        {
-            bool spawned = false;
-            int repeated = 0;
-            while (spawned == false)
-            {
-                List<ScreenOption> tempList = new List<ScreenOption>();
-                Debug.Log(toPlace);
-                if (i == screenCount / 2)
+                for (int y = 0; y < tilemapBounds.size.y / screenSize.y; y++)
                 {
-                    foreach (var item in checkpoints)
+                    possibleScreens.Add(new Vector2Int(x * screenSize.x + tilemapBounds.x, y * screenSize.y + tilemapBounds.y));
+                }
+            }
+            List<ScreenOption> mains = new List<ScreenOption>();
+            List<ScreenOption> bosses = new List<ScreenOption>();
+            List<ScreenOption> checkpoints = new List<ScreenOption>();
+            List<ScreenOption> starts = new List<ScreenOption>();
+            foreach (var item in screenOptions)
+            {
+                if (item.start == true)
+                {
+                    starts.Add(item);
+                }
+                else if (item.checkpoint == true)
+                {
+                    checkpoints.Add(item);
+                }
+                else if (item.boss == true)
+                {
+                    bosses.Add(item);
+                }
+                else if (item.boss == false && item.checkpoint == false && item.start == false)
+                {
+                    mains.Add(item);
+                }
+            }
+            mainTiles.ClearAllTiles();
+            int toPlace = possibleScreens.IndexOf(new Vector2Int((tilemapBounds.size.x / screenSize.x) / 4 * screenSize.x + tilemapBounds.x, (tilemapBounds.size.y / screenSize.y) / 4 * screenSize.y + tilemapBounds.y));
+            Vector2Int pastSpot = new Vector2Int();
+            ScreenOption chosen = starts[Random.Range(0, starts.Count)];
+            spawnScreen(mainTiles, chosen, possibleScreens[toPlace], ref toPlace, possibleScreens, pastSpot);
+            pastSpot = possibleScreens[toPlace];
+            Debug.Log(possibleScreens[toPlace]);
+            Vector2Int pastVect = possibleScreens[toPlace];
+            possibleScreens[toPlace] = new Vector2Int(-100, -100);
+            if (chosen.up && pastSpot.y <= pastVect.y)
+            {
+                toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y - (screenSize.y)));
+            }
+            else if (chosen.down && pastSpot.y >= pastVect.y)
+            {
+                toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y + (screenSize.y)));
+            }
+            else if (chosen.right && pastSpot.x <= pastVect.x)
+            {
+                toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x + (screenSize.x), pastVect.y));
+            }
+            else if (chosen.left && pastSpot.x >= pastVect.x)
+            {
+                toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x - (screenSize.x), pastVect.y));
+            }
+            for (int i = 0; i <= ((screenCount)); i++)
+            {
+                bool spawned = false;
+                int repeated = 0;
+                while (spawned == false)
+                {
+                    List<ScreenOption> tempList = new List<ScreenOption>();
+                    Debug.Log(toPlace);
+                    if (i == screenCount / 2)
                     {
-                        if (item.up && pastSpot.y < possibleScreens[toPlace].y)
+                        foreach (var item in checkpoints)
                         {
-                            tempList.Add(item);
+                            if (item.up && pastSpot.y < possibleScreens[toPlace].y)
+                            {
+                                tempList.Add(item);
+                            }
+                            else if (item.down && pastSpot.y > possibleScreens[toPlace].y)
+                            {
+                                tempList.Add(item);
+                            }
+                            else if (item.right && pastSpot.x > possibleScreens[toPlace].x)
+                            {
+                                tempList.Add(item);
+                            }
+                            else if (item.left && pastSpot.x < possibleScreens[toPlace].x)
+                            {
+                                tempList.Add(item);
+                            }
                         }
-                        else if (item.down && pastSpot.y > possibleScreens[toPlace].y)
+                    }
+                    else if (i == screenCount)
+                    {
+                        foreach (var item in bosses)
                         {
-                            tempList.Add(item);
+                            if (item.up && pastSpot.y < possibleScreens[toPlace].y)
+                            {
+                                tempList.Add(item);
+                            }
+                            else if (item.down && pastSpot.y > possibleScreens[toPlace].y)
+                            {
+                                tempList.Add(item);
+                            }
+                            else if (item.right && pastSpot.x > possibleScreens[toPlace].x)
+                            {
+                                tempList.Add(item);
+                            }
+                            else if (item.left && pastSpot.x < possibleScreens[toPlace].x)
+                            {
+                                tempList.Add(item);
+                            }
                         }
-                        else if (item.right && pastSpot.x > possibleScreens[toPlace].x)
+                    }
+                    else
+                    {
+                        foreach (var item in mains)
                         {
-                            tempList.Add(item);
+                            if (item.up && pastSpot.y < possibleScreens[toPlace].y)
+                            {
+                                tempList.Add(item);
+                            }
+                            else if (item.down && pastSpot.y > possibleScreens[toPlace].y)
+                            {
+                                tempList.Add(item);
+                            }
+                            else if (item.right && pastSpot.x > possibleScreens[toPlace].x)
+                            {
+                                tempList.Add(item);
+                            }
+                            else if (item.left && pastSpot.x < possibleScreens[toPlace].x)
+                            {
+                                tempList.Add(item);
+                            }
                         }
-                        else if (item.left && pastSpot.x < possibleScreens[toPlace].x)
-                        {
-                            tempList.Add(item);
-                        }
+                    }
+                    if (tempList.Count > 0)
+                    {
+                        chosen = tempList[Random.Range(0, tempList.Count)];
+                        spawned = spawnScreen(mainTiles, chosen, possibleScreens[toPlace], ref toPlace, possibleScreens, pastSpot);
+                    }
+                    else
+                    {
+                        spawned = false;
+                    }
+                    repeated++;
+                    if (repeated > 30)
+                    {
+                        break;
                     }
                 }
-                else if (i == screenCount)
+                if (repeated <= 30)
                 {
-                    foreach (var item in bosses)
+                    pastVect = possibleScreens[toPlace];
+                    possibleScreens[toPlace] = new Vector2Int(-100, -100);
+                    if (chosen.down && pastSpot.y > pastVect.y)
                     {
-                        if (item.up && pastSpot.y < possibleScreens[toPlace].y)
+                        if (chosen.up)
                         {
-                            tempList.Add(item);
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y - (screenSize.y)));
                         }
-                        else if (item.down && pastSpot.y > possibleScreens[toPlace].y)
+                        else if (chosen.right)
                         {
-                            tempList.Add(item);
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x + (screenSize.x), pastVect.y));
                         }
-                        else if (item.right && pastSpot.x > possibleScreens[toPlace].x)
+                        else if (chosen.left)
                         {
-                            tempList.Add(item);
-                        }
-                        else if (item.left && pastSpot.x < possibleScreens[toPlace].x)
-                        {
-                            tempList.Add(item);
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x - (screenSize.x), pastVect.y));
                         }
                     }
+                    else if (chosen.up && pastSpot.y < pastVect.y)
+                    {
+                        if (chosen.right)
+                        {
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x + (screenSize.x), pastVect.y));
+                        }
+                        else if (chosen.left)
+                        {
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x - (screenSize.x), pastVect.y));
+                        }
+                        else if (chosen.down)
+                        {
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y + (screenSize.y)));
+                        }
+                    }
+                    else if (chosen.left && pastSpot.x < pastVect.x)
+                    {
+                        if (chosen.up)
+                        {
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y - (screenSize.y)));
+                        }
+                        else if (chosen.right)
+                        {
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x + (screenSize.x), pastVect.y));
+                        }
+                        else if (chosen.down)
+                        {
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y + (screenSize.y)));
+                        }
+                    }
+                    else if (chosen.right && pastSpot.x > pastVect.x)
+                    {
+                        if (chosen.up)
+                        {
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y - (screenSize.y)));
+                        }
+                        else if (chosen.left)
+                        {
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x - (screenSize.x), pastVect.y));
+                        }
+                        else if (chosen.down)
+                        {
+                            toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y + (screenSize.y)));
+                        }
+                    }
+                    pastSpot = pastVect;
+                    Debug.Log(pastVect);
                 }
                 else
                 {
-                    foreach (var item in mains)
-                    {
-                        if (item.up && pastSpot.y < possibleScreens[toPlace].y)
-                        {
-                            tempList.Add(item);
-                        }
-                        else if (item.down && pastSpot.y > possibleScreens[toPlace].y)
-                        {
-                            tempList.Add(item);
-                        }
-                        else if (item.right && pastSpot.x > possibleScreens[toPlace].x)
-                        {
-                            tempList.Add(item);
-                        }
-                        else if (item.left && pastSpot.x < possibleScreens[toPlace].x)
-                        {
-                            tempList.Add(item);
-                        }
-                    }
-                }
-                if (tempList.Count > 0)
-                {
-                    chosen = tempList[Random.Range(0, tempList.Count)];
-                    spawned = spawnScreen(mainTiles, chosen, possibleScreens[toPlace], ref toPlace, possibleScreens, pastSpot);
-                }
-                else
-                {
-                    spawned = false;
-                }
-                repeated++;
-                if (repeated > 30)
-                {
-                    break;
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
                 }
             }
-            if (repeated <= 30)
-            {
-                pastVect = possibleScreens[toPlace];
-                possibleScreens[toPlace] = new Vector2Int(-100,-100);
-                if (chosen.down && pastSpot.y > pastVect.y)
-                {
-                    if (chosen.up)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y - (screenSize.y)));
-                    }
-                    else if (chosen.right)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x + (screenSize.x), pastVect.y));
-                    }
-                    else if (chosen.left)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x - (screenSize.x), pastVect.y));
-                    }
-                }
-                else if (chosen.up && pastSpot.y < pastVect.y)
-                {
-                    if (chosen.right)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x + (screenSize.x), pastVect.y));
-                    }
-                    else if (chosen.left)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x - (screenSize.x), pastVect.y));
-                    }
-                    else if (chosen.down)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y + (screenSize.y)));
-                    }
-                }
-                else if (chosen.left && pastSpot.x < pastVect.x)
-                {
-                    if (chosen.up)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y - (screenSize.y)));
-                    }
-                    else if (chosen.right)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x + (screenSize.x), pastVect.y));
-                    }
-                    else if (chosen.down)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y + (screenSize.y)));
-                    }
-                }
-                else if (chosen.right && pastSpot.x > pastVect.x)
-                {
-                    if (chosen.up)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y - (screenSize.y)));
-                    }
-                    else if (chosen.left)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x - (screenSize.x), pastVect.y));
-                    }
-                    else if (chosen.down)
-                    {
-                        toPlace = possibleScreens.IndexOf(new Vector2Int(pastVect.x, pastVect.y + (screenSize.y)));
-                    }
-                }
-                pastSpot = pastVect;
-                Debug.Log(pastVect);
-            }
-            else
-            {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-            }
+            mainTiles.CompressBounds();
         }
-        mainTiles.CompressBounds();
     }
     // Update is called once per frame
-    void FixedUpdate()
+    void LateUpdate()
     {
-        timer = 0;
         if (timer <= 0)
         {
             if (Generated == false)
@@ -437,6 +447,7 @@ public class generator : MonoBehaviour
                 GenerateFile();
             }
         }
+        timer = 0;
     }
 }
 [System.Serializable]
